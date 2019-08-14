@@ -6,11 +6,21 @@ body {
 	font-family: sans-serif;
 }
 
-#boolean-table, th, td {
+th {
+	background-color: lightblue;
+	border: 1px solid black;
+}
+
+td {
+	border: 1px solid black;
+}
+
+#boolean-table {
 	width: 10%;
 	text-align: center;
 	empty-cells: hide;
-	border: 1px solid black;
+	border-collapse: collapse;
+	/* border: 1px solid black; */
 }
 
 #boolean-function {
