@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+	<link rel="stylesheet" href="index.css">
+</head>
+<title>Boolean Table Generator</title>
+
+<body>
+	<center>
+		<h1>Boolean Table Generator</h1>
+		<p style="display:inline-block">Boolean operators:</p>
+		<button id="complement" onClick="operatorToText(this);">‾</button>
+		<button id="product" onClick="operatorToText(this);">·</button>
+		<button id="sum" onClick="operatorToText(this);">+</button>
+		<!-- <p>Note: Middot may be omitted</p> -->
+		<br />
+		<input id="boolean-function" type="text" maxlength="20" placeHolder="Enter Boolean function...">
+		<button id="generator" onClick="distinctLetters(); generateTable();">Generate</button>
+		<table id=boolean-table></table>
+	</center>
+
+	<script src="app.js"></script>
+</body>
+
+</html>
