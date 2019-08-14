@@ -20,7 +20,6 @@ td {
 	text-align: center;
 	empty-cells: hide;
 	border-collapse: collapse;
-	/* border: 1px solid black; */
 }
 
 #boolean-function {
