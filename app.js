@@ -15,17 +15,15 @@ var cols;
 var rows;
 
 function distinctLetters() {
-     var result = [];
-     booleanFunctionArr = booleanFunction.value.split("");
-     for (let i = 0; i < booleanFunctionArr.length; i++) {
-          let el = booleanFunctionArr[i];
-          if (result.indexOf(el) === -1 && booleanFunction.value[i] != "\u0305"
-               && booleanFunction.value[i] != "·" && booleanFunction.value[i] != "+"
-               && booleanFunction.value[i] != "(" && booleanFunction.value[i] != ")") {
-                    result.push(el);
+     var distinctLetters = [];
+     // booleanFunctionArr = booleanFunction.value.split("");
+     for (let i = 0; i < booleanFunction.value.length; i++) {
+          let el = booleanFunction.value.charAt(i);
+          if (distinctLetters.indexOf(el) == -1 && /[A-Za-z]/.test(booleanFunction.value[i])) {
+               distinctLetters.push(el);
           }
      }
-     return result;
+     return distinctLetters;
 }
 
 function convertToBinary(x) {
@@ -39,6 +37,8 @@ function convertToBinary(x) {
 
 function initializeHeader() {
      headers = [];
+     
+     // A header for each distinct letter and 
      for (let i = 0; i <= distinctLetters().length + 1; i++) {
           var booleanVar = document.createElement("TH");
           if (i < distinctLetters().length) {
@@ -70,8 +70,10 @@ function finishHeader() {
 function initializeTable() {
      for (let i = 0; i < rows; i++) {
           var row = booleanTable.insertRow(i);
+
           for (let j = 0; j < cols; j++) {
                var newCell = row.insertCell(-1);
+
                if (j % cols == 0) {
                     newCell.innerHTML = varValuesString[i * cols];
                } else {
@@ -81,58 +83,67 @@ function initializeTable() {
      }
 }
 
-function generateTable() {
+function finishTable() {
      varValues = [];
+
      while (booleanTable.hasChildNodes()) {
           booleanTable.removeChild(booleanTable.firstChild);
      }
-     cols = distinctLetters().length;
-     rows = Math.pow(2, cols);
+     
+     if (checkValidity()) {
+          cols = distinctLetters().length;
+          rows = Math.pow(2, cols);
 
-     for (let i = rows - 1; i >= 0; i--) {
-          varValues.push((convertToBinary(i)));
+          for (let i = rows - 1; i >= 0; i--) {
+               varValues.push((convertToBinary(i)));
+          }
+          varValuesString = varValues.join("");
+
+          replace();
+          generatedTableCaption.innerHTML = "Results";
+          booleanTable.appendChild(generatedTableCaption);
+          initializeHeader();
+          initializeTable();
+          insertResults();
      }
-     varValuesString = varValues.join("");
-
-     replace();
-     generatedTableCaption.innerHTML = "Results";
-     booleanTable.appendChild(generatedTableCaption);
-     initializeHeader();
-     initializeTable();
-     insertResults();
 }
 
 function replace() {
      for (let i = 0; i < rows; i++) {
           binaryBooleanFunction = "";
+
           for (let j = 0; j < booleanFunction.value.length; j++) {
                if (booleanFunction.value[j] == "\u0305") {
                     binaryBooleanFunction += "\u0305";
-               } else if (booleanFunction.value[j] == "·") {
-                    continue;
                } else if (booleanFunction.value[j] == "+") {
                     binaryBooleanFunction += booleanFunction.value[j];
                } else {
                     //	First finds index of the current Boolean variable inside array of distinctLetters, then
                     //	adds (i * col) to get the appropriate index for the appropriate value in varValuesString, then
                     //	pushes the value to binaryBooleanFunction
-                    binaryBooleanFunction += (varValuesString[[distinctLetters().indexOf(booleanFunction.value[j]) + (i * cols)]]);
+                    var varValue = varValuesString[[distinctLetters().indexOf(booleanFunction.value[j]) + (i * cols)]];
+                    binaryBooleanFunction += varValue;
                }
           }
+          
+          console.log(binaryBooleanFunction);
           calculate(binaryBooleanFunction);
      }
+     
      return results;
 }
 
 function calculate(string) {
      var splitBySumOperator = string.split("+");
-     for (var i = 0; i < splitBySumOperator.length; i++) {
+
+     for (let i = 0; i < splitBySumOperator.length; i++) {
           if (!splitBySumOperator[i].includes("\u0305")) {
                product(splitBySumOperator[i], splitBySumOperator.length, i);
           } else {
-               var complementIndexMinusOne = splitBySumOperator[i].indexOf("\u0305") - 1;
-               var newFunction = spliceSplit(splitBySumOperator[i], complementIndexMinusOne, 2, complement(splitBySumOperator[i][complementIndexMinusOne]));
-               if (newFunction.length == 1) {
+               var complementedVariableIndex = splitBySumOperator[i].indexOf("\u0305") - 1;
+               var newFunction = spliceSplit(splitBySumOperator[i], complementedVariableIndex, 2, complement(splitBySumOperator[i][complementedVariableIndex]));
+
+               if (newFunction.length == 1 && !elementJIsDuplicate(i)) {
                     results.push(parseInt(newFunction));
                }
                splitBySumOperator[i] = newFunction;
@@ -194,6 +205,7 @@ function elementJIsDuplicate(j) {
 }
 
 function insertResults() {
+     console.log(results);
      var count = 0;
      for (let i = 0; i < rows; i++) {
           for (let j = distinctLetters().length; j < booleanTable.getElementsByTagName("TH").length; j++) {
@@ -212,9 +224,9 @@ function insert(index, string) {
 }
 
 function spliceSplit(string, index, count, add) {
-     var arr = string.split('');
+     var arr = string.split("");
      arr.splice(index, count, add);
-     return arr.join('');
+     return arr.join("");
 }
 
 function replaceAt(index, replacement) {
@@ -229,24 +241,112 @@ function setOverlineToPos(index, string) {
      return replaceAt(index, booleanVariable);
 }
 
-function operatorToText(target) {
+function operatorToInput(target) {
      var pos = booleanFunction.selectionStart;
-     if (target.id == "complement" && booleanFunction.selectionStart == booleanFunction.selectionEnd && booleanFunction.value[pos - 1] != undefined) {
-          booleanFunction.value = setOverlineToPos(pos - 1, booleanFunction.value);
+
+     if (target.id == "complement") {
+          if (booleanFunction.selectionStart == booleanFunction.selectionEnd && booleanFunction.value[pos - 1] != undefined && /[A-Za-z]/.test(booleanFunction.value[pos - 1])) {
+               booleanFunction.value = setOverlineToPos(pos - 1, booleanFunction.value);
+          } else if (booleanFunction.value[pos - 1] == "\u0305") {
+               alert("Please note that a double complement would be the same as not having any complements, like the double negation law in symbolic logic.")
+          } else {
+               alert("Please note that for whichever Boolean variable you would like to overline, type the variable, then click the overline button.")
+          }
      }
+
      if (target.id == "product") {
-          alert("The product dot may be omitted");
-          // booleanFunction.value = insert(pos, target.innerHTML);
+          alert("The product dot may be omitted; simply type the Boolean variables adjacent to each other.");
      }
+
      if (target.id == "sum") {
           booleanFunction.value = insert(pos, target.innerHTML);
      }
+}
+
+class Stack { 
+     // Array is used to implement stack 
+     constructor() {
+          this.items = [];
+     }
+
+     // Push element into the items
+     push(element) {
+          this.items.push(element);
+     }
+
+     // Return top most element in the stack
+     // and removes it from the stack
+     // Underflow if stack is empty
+     pop() {
+          if (this.items.length == 0)
+               return "Underflow";
+          return this.items.pop();
+     }
+
+     // Return true if stack is empty
+     isEmpty() {          
+          return this.items.length == 0;
+     }
+
+     printStack() {
+          var str = "";
+          for (var i = 0; i < this.items.length; i++)
+               str += this.items[i] + " ";
+          return str;
+     }
+}
+
+function checkValidity() {
+     var functionStack = new Stack();
+     
+     if (booleanFunction.value.length == 0 || booleanFunction.value.length == 1) {
+          alert("Please input a valid Boolean function.");
+          return false;
+     }
+
+     if (!/^[\u0305A-Za-z()+]*$/.test(booleanFunction.value)) {
+          alert("Please use letters and the Boolean operators only.");
+          return false;
+     }
+
+     for (let i = 0; i < booleanFunction.value.length; i++) {
+          if (booleanFunction.value[i] == "(") {
+               functionStack.push(booleanFunction.value[i]);
+          }
+
+          if (booleanFunction.value[i] == ")") {
+               functionStack.pop();
+          }
+
+          // Sum operator must have a Boolean variable or overline before it and it must have a Boolean variable after it,
+          // so if either of those are false, then the sum operator was used incorrectly
+          if (booleanFunction.value[i] == "+") {
+               if (((booleanFunction.value[i - 1] == "\u0305" || booleanFunction.value[i - 1] != undefined) && booleanFunction.value[i + 1] != undefined) == false) {
+                    alert("Please check your syntax, the sum operator must be in between Boolean variables.");
+                    return false;
+               }
+          }
+
+          
+          
+          // if (booleanFunction.value[i] == "\u0305" && !/[A-Za-z]/.test(booleanFunction.value[i - 1])) {
+          //      alert("Please check your syntax, for whichever Boolean variable you would like to overline, type the character, then click the overline button");
+          //      return false;
+          // }
+     }
+
+     if (functionStack.printStack().includes("(")) {
+          alert("Please balance your parentheses.");
+          return false;
+     }
+
+     return true;
 }
 
 booleanFunction.addEventListener("keypress", generateOnKeypress);
 
 function generateOnKeypress(event) {
      if (event.which === 13) {
-          generateTable();
+          finishTable();
      }
 }
